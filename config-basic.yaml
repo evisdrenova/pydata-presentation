@@ -1,0 +1,62 @@
+input:
+  sql_select:
+    driver: postgres
+    dsn: postgres://postgres:password@localhost:5436/postgres?sslmode=disable
+    table: users
+    columns:
+      [
+        id,
+        first_name,
+        last_name,
+        street_address,
+        city,
+        state,
+        zipcode,
+        loyalty_plan,
+        price,
+      ]
+pipeline:
+  processors:
+    - bloblang: |
+        let cities = ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix"]
+        let street_addresses = ["123 Main St", "456 South St", "789 North St"]
+        let random_index_city = random_int(min:0, max:4)
+        let random_index_street = random_int(min:0, max:2)
+        root.id = this.id
+        root.first_name = fake("first_name")
+        root.last_name = fake("last_name")
+        root.street_address = $street_addresses.index($random_index_street)
+        root.city = $cities.index($random_index_city)
+        root.state = this.state
+        root.zipcode = this.zipcode
+        root.loyalty_plan = random_int(min:0, max:1)
+        root.price = this.price
+output:
+  sql_insert:
+    driver: postgres
+    dsn: postgres://postgres:password@localhost:5437/postgres?sslmode=disable
+    table: users
+    columns:
+      [
+        id,
+        first_name,
+        last_name,
+        street_address,
+        city,
+        state,
+        zipcode,
+        loyalty_plan,
+        price,
+      ]
+    args_mapping: |
+      root = [
+        this.id,
+        this.first_name,
+        this.last_name,
+        this.street_address,
+        this.city,
+        this.state,
+        this.zipcode,
+        this.loyalty_plan,
+        this.price
+        ]

@@ -1,0 +1,23 @@
+input:
+  sql_raw:
+    driver: postgres
+    dsn: postgres://postgres:password@localhost:5436/postgres?sslmode=disable
+    query: "SELECT * FROM users_big;"
+pipeline:
+  processors:
+    - bloblang: |
+        root.users = this.map({
+          "id": this.id.string(),
+          "first_name": this.first_name.string(),
+          "last_name": this.last_name.string(),
+          "street_address": this.street_address.string(),
+          "city": this.city.string(),
+          "state": this.state.string(),
+          "zipcode": this.zipcode.string(),
+          "loyalty_plan": this.loyalty_plan.bool(),
+          "price": this.price.number()
+        })
+output:
+  file:
+    path: "./data/output.csv"
+    codec: lines

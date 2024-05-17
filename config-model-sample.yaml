@@ -1,0 +1,49 @@
+input:
+  http_client:
+    url: "http://0.0.0.0:5000/sample"
+    verb: GET
+    timeout: "30s"
+    retry_period: "1s"
+    max_retry_backoff: "5s"
+    retries: 3
+pipeline:
+  processors:
+    - bloblang: |
+        root.id = this.id
+        root.first_name = this.first_name.string()
+        root.last_name = this.last_name.string()
+        root.street_address = this.street_address.string()
+        root.city = this.city.string()
+        root.state = this.state.string()
+        root.zipcode = this.zipcode.number()
+        root.loyalty_plan = this.loyalty_plan.bool()
+        root.price = this.price.number()
+output:
+  sql_insert:
+    driver: postgres
+    dsn: postgres://postgres:password@localhost:5437/postgres?sslmode=disable
+    table: users
+    columns:
+      [
+        id,
+        first_name,
+        last_name,
+        street_address,
+        city,
+        state,
+        zipcode,
+        loyalty_plan,
+        price,
+      ]
+    args_mapping: |
+      root = [
+        this.id,
+        this.first_name,
+        this.last_name,
+        this.street_address,
+        this.city,
+        this.state,
+        this.zipcode,
+        this.loyalty_plan,
+        this.price
+        ]
